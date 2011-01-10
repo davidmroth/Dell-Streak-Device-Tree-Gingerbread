@@ -1,0 +1,83 @@
+#!/bin/sh
+
+KERN_DIR=kbin
+LUNCH_SETTING=streak-eng #or streak-userdebug
+
+
+#make -j4 QC_PROP=true ENABLE_SERIAL_CONSOLE=true BUILD_TINY_ANDROID=true
+#make -j4 QC_PROP=true ENABLE_SERIAL_CONSOLE=true TARGET_PREBUILT_KERNEL=device/dell/streak/custom/boot/kernel
+#make -j4 ENABLE_SERIAL_CONSOLE=true
+#TARGET_PREBUILT_KERNEL=y make -j4
+#make -j4 otapackage
+MAKECMD_BUILD="make -j4"
+MAKECMD_BUILDOTA="make -j4 otapackage"
+
+#DEFCONFIG=qsd8650-perf_defconfig
+#DEFCONFIG=austin-perf_defconfig
+#DEFCONFIG=austin-test_defconfig
+DEFCONFIG=austin-test3_defconfig
+
+
+
+if [ -e build/envsetup.sh ]; then
+    if [ -z "$(echo $TARGET_PRODUCT)" ]; then
+    	clear; . build/envsetup.sh; lunch $LUNCH_SETTING
+    fi
+else
+    clear; echo "Please run this from the root of the Android Build Enviroment"
+fi
+reset
+
+
+
+export KERNEL_DEFCONFIG=$DEFCONFIG
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$HOME/bin:$ANDROID_TOOLCHAIN:$ANDROID_BUILD_TOP/out/host/linux-x86/bin
+export USER=mistadman
+export PRODUCT_DEFAULT_REGION=US
+
+
+case $1 in
+
+	"nobuild")
+		;;
+
+    "build")
+   		[ ! -e out/ ] && ( make acp; mmm device/qcom/qsd8250_surf/custom/prebuilt )
+        $MAKECMD_BUILD
+		;;
+
+	"buildota")
+   		[ ! -e out/ ] && ( make acp; mmm device/qcom/qsd8250_surf/custom/prebuilt )
+        $MAKECMD_BUILDOTA
+		;;
+
+	"kernelclean")
+        kdir=$([ ! -e $KERN_DIR ] && (mkdir $KERN_DIR; echo $KERN_DIR) || echo $KERN_DIR)
+        [ -e kernel/ ] && (make -C kernel O=../$kdir ARCH=arm CROSS_COMPILE=$ANDROID_TOOLCHAIN/arm-eabi- $KERNEL_DEFCONFIG distclean; rm -r $kdir)
+		;;
+
+	"kernelprepare")
+   		[ -e kernel/ ] && make -C kernel O=../$([ ! -e $KERN_DIR ] && (mkdir $KERN_DIR; echo $KERN_DIR) || echo $KERN_DIR) ARCH=arm CROSS_COMPILE=$ANDROID_TOOLCHAIN/arm-eabi- $KERNEL_DEFCONFIG oldconfig
+		;;
+
+	"kernelmenu")
+        kdir=$([ ! -e $KERN_DIR ] && (mkdir $KERN_DIR; echo $KERN_DIR) || echo $KERN_DIR)
+   		[ -e $kdir/.config ] && make -C kernel O=../$kdir ARCH=arm CROSS_COMPILE=$ANDROID_TOOLCHAIN/arm-eabi- menuconfig || echo "Please run \"./compile_streak kernelprepare\" first!"; 
+		;;
+
+	"kernelgmenu")
+        kdir=$([ ! -e $KERN_DIR ] && (mkdir $KERN_DIR; echo $KERN_DIR) || echo $KERN_DIR)
+   		[ -e $kdir/.config ] && make -C kernel O=../$kdir ARCH=arm CROSS_COMPILE=$ANDROID_TOOLCHAIN/arm-eabi- gconfig || echo "Please run \"./compile_streak kernelprepare\" first!"; 
+		;;
+
+	"kernelbuild")
+   		[ -e kernel/ ] && make -C kernel O=../$([ ! -e $KERN_DIR ] && (mkdir $KERN_DIR; echo $KERN_DIR) || echo $KERN_DIR) ARCH=arm CROSS_COMPILE=$ANDROID_TOOLCHAIN/arm-eabi-
+		;;
+		
+	"recoverybuild")
+		make -j4 recoveryimage TARGET_PREBUILT_KERNEL=device/dell/streak/custom/recovery/prebuilt/kernel
+		;;
+	*)
+		echo "nobuild build recoverybuild kernelprepare kernelmenu kernelbuild"
+		;;
+esac

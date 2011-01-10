@@ -1,0 +1,18 @@
+/dev/kgsl-3d0             0666   root       root
+/dev/auo_misc_touch       0666   root       root
+
+# for Sensor HAL
+/dev/sensors_daemon       0666   root       root
+/dev/gsensor_bma150       0666   root       root
+/dev/ecompass_ak8973s     0666   root       root
+/dev/psensor_cm3603       0666   root       root
+/dev/lsensor_cm3204       0666   root       root
+
+
+#bluetooth
+/dev/bcomfm               0660   bluetooth  bluetooth
+/dev/ttyHS1               0660   bluetooth  bluetooth
+
+#loc_api
+/dev/oncrpc/3000006b:00010000  0660 root system 
+/dev/oncrpc/3000008c:00040000  0660 root system 

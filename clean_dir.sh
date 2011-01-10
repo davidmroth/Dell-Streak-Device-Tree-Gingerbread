@@ -1,0 +1,1 @@
+rm -rf kernel ramdisk* recovery* system* userdata.img recovery* data streak-ota-eng.mistadman.zip root boot.img symbols splash.img installed-files.txt android-info.txt obj/PACKAGING obj/KERNEL_OBJ obj/SHARED_LIBRARIES/libhardware_legacy
